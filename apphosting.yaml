@@ -1,0 +1,7 @@
+# Firebase App Hosting config. Minimal for Step 1.
+# GEMINI_API_KEY is NOT set here directly — run:
+#   firebase apphosting:secrets:set GEMINI_API_KEY
+# which stores it in Cloud Secret Manager and appends the correct
+# `env:` reference to this file automatically.
+runConfig:
+  minInstances: 0

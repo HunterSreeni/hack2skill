@@ -1,11 +1,30 @@
+# dependencies
 node_modules/
+
+# env files - never commit secrets (GEMINI_API_KEY lives here)
 .env
 .env.local
 .env.*.local
-dist/
-build/
+
+# next.js
 .next/
 out/
+next-env.d.ts
+*.tsbuildinfo
+
+# production
+dist/
+build/
+
+# testing
+coverage/
+
+# firebase
+.firebase/
+firebase-debug.log
+.vercel
+
+# misc
 *.log
 .DS_Store
 __pycache__/
