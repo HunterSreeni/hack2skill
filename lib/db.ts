@@ -63,10 +63,21 @@ export async function lookupPairingCode(code: string): Promise<string | null> {
   return snap.exists() ? (snap.data().uid as string) : null;
 }
 
-export async function createLink(recoveringUid: string, caregiverUid: string): Promise<void> {
+/**
+ * Links a caregiver to a recovering user. The pairing code is stored on the
+ * link so the security rules can re-verify it server-side: a link grants the
+ * caregiver read access to that person's streak and lapse history, so proof
+ * of consent has to be checked in the rules, not just in this client call.
+ */
+export async function createLink(
+  recoveringUid: string,
+  caregiverUid: string,
+  pairingCode: string
+): Promise<void> {
   await setDoc(doc(getFirebaseDb(), "links", `${recoveringUid}_${caregiverUid}`), {
     recoveringUid,
     caregiverUid,
+    pairingCode,
     createdAt: Date.now(),
   });
 }

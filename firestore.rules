@@ -28,11 +28,18 @@ service cloud.firestore {
 
     // Links between a recovering user and a caregiver.
     // Doc ID convention: {recoveringUid}_{caregiverUid}.
-    // Only the caregiver can create the link (after looking up a valid pairing code).
-    // Either party can read it.
+    // Only the caregiver can create the link, and only while holding a pairing
+    // code that actually belongs to that recovering user - a link is what
+    // grants read access to their streak and lapse history, so consent is
+    // re-verified here rather than trusted from the client. Either party can read it.
     match /links/{linkId} {
       allow create: if request.auth != null
-        && request.auth.uid == request.resource.data.caregiverUid;
+        && request.auth.uid == request.resource.data.caregiverUid
+        && request.auth.uid != request.resource.data.recoveringUid
+        && linkId == request.resource.data.recoveringUid + '_' + request.resource.data.caregiverUid
+        && exists(/databases/$(database)/documents/pairingCodes/$(request.resource.data.pairingCode))
+        && get(/databases/$(database)/documents/pairingCodes/$(request.resource.data.pairingCode)).data.uid
+             == request.resource.data.recoveringUid;
       allow read: if request.auth != null
         && (request.auth.uid == resource.data.recoveringUid
             || request.auth.uid == resource.data.caregiverUid);
@@ -44,9 +51,15 @@ service cloud.firestore {
     match /alerts/{alertId} {
       allow create: if request.auth != null
         && request.auth.uid == request.resource.data.userId;
-      allow read, update: if request.auth != null
+      allow read: if request.auth != null
         && (request.auth.uid == resource.data.userId
             || request.auth.uid in resource.data.caregiverIds);
+      // Acknowledging is the only mutation anyone may make: a caregiver must
+      // not be able to rewrite the alert type, its timestamp, or who it went to.
+      allow update: if request.auth != null
+        && (request.auth.uid == resource.data.userId
+            || request.auth.uid in resource.data.caregiverIds)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['acknowledged']);
     }
   }
 }

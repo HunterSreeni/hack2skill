@@ -1,6 +1,8 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { POST as generateScript } from "@/app/api/generate-script/route";
 import { POST as crisisResponse } from "@/app/api/crisis-response/route";
+import { resetRateLimit } from "@/lib/rate-limit";
+import { resetCompletionCache } from "@/lib/api-utils";
 
 /**
  * Real, non-mocked integration tests: these hit the live Gemini API using
@@ -9,6 +11,14 @@ import { POST as crisisResponse } from "@/app/api/crisis-response/route";
  * deliberately NOT mocked - if GEMINI_API_KEY is missing, these fail loudly
  * rather than silently mocking, which is the correct behavior here.
  */
+
+// Every case here shares one synthetic client identity, so without a reset the
+// suite would trip its own rate limiter and serve cached completions between
+// cases. Both are process-local state, cleared per test.
+beforeEach(() => {
+  resetRateLimit();
+  resetCompletionCache();
+});
 
 function req(body: unknown) {
   return new Request("http://localhost/api/test", {

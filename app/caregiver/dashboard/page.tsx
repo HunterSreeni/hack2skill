@@ -99,7 +99,7 @@ export default function CaregiverDashboardPage() {
       if (!recoveringUid) {
         throw new Error("No one found with that code.");
       }
-      await createLink(recoveringUid, user.uid);
+      await createLink(recoveringUid, user.uid, upperCode);
       setCode("");
     } catch (err) {
       setPairError(err instanceof Error ? err.message : "Something went wrong.");

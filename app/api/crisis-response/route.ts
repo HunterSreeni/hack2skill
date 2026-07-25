@@ -1,4 +1,5 @@
 import { parseJsonBody, badRequest, callGemini, appendHelplineFooter } from "@/lib/api-utils";
+import { rateLimit } from "@/lib/rate-limit";
 
 const MAX_SCRIPT_LENGTH = 2000;
 
@@ -8,6 +9,9 @@ You will be given their own previously-written personal emergency script as cont
 Respond directly to them, second person, present tense, as if reading their script back to them calmly and warmly. Reference their specific trigger and their specific reason to stay clear from the script. End by reminding them of the grounding action from their script. Keep it under 90 words. Do not include a helpline number or sign-off - that will be appended separately. No clinical jargon, no mention that you are an AI.`;
 
 export async function POST(request: Request) {
+  const limited = rateLimit(request);
+  if (limited) return limited;
+
   const body = await parseJsonBody(request);
   if (!body) return badRequest("Invalid request body.");
 

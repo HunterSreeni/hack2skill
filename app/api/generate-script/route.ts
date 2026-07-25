@@ -1,5 +1,6 @@
 import { SUBSTANCES, ASSIST_LITE_QUESTIONS, scoreCheckIn, type Substance } from "@/lib/data/assist-lite";
 import { parseJsonBody, badRequest, isValidFrequency, callGemini, appendHelplineFooter } from "@/lib/api-utils";
+import { rateLimit } from "@/lib/rate-limit";
 
 const MAX_TRIGGER_NOTE_LENGTH = 500;
 
@@ -14,6 +15,9 @@ Write a short, warm, second-person "personal emergency script" (max 120 words) w
 Do not include a helpline number or sign-off - that will be appended separately.`;
 
 export async function POST(request: Request) {
+  const limited = rateLimit(request);
+  if (limited) return limited;
+
   const body = await parseJsonBody(request);
   if (!body) return badRequest("Invalid request body.");
 

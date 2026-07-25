@@ -81,17 +81,59 @@ describe("users/{uid}", () => {
 });
 
 describe("links/{recoveringUid}_{caregiverUid}", () => {
-  it("lets a caregiver create a link naming themself", async () => {
+  /** Alice's real pairing code, as her own client would have created it. */
+  async function seedAlicePairingCode() {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "pairingCodes/ABC123"), { uid: "alice" });
+    });
+  }
+
+  it("lets a caregiver holding a valid pairing code create a link naming themself", async () => {
+    await seedAlicePairingCode();
     const bob = testEnv.authenticatedContext("bob").firestore();
     await assertSucceeds(
-      setDoc(doc(bob, "links/alice_bob"), { recoveringUid: "alice", caregiverUid: "bob" })
+      setDoc(doc(bob, "links/alice_bob"), {
+        recoveringUid: "alice",
+        caregiverUid: "bob",
+        pairingCode: "ABC123",
+      })
     );
   });
 
   it("denies creating a link naming someone else as the caregiver", async () => {
+    await seedAlicePairingCode();
     const mallory = testEnv.authenticatedContext("mallory").firestore();
     await assertFails(
-      setDoc(doc(mallory, "links/alice_bob"), { recoveringUid: "alice", caregiverUid: "bob" })
+      setDoc(doc(mallory, "links/alice_bob"), {
+        recoveringUid: "alice",
+        caregiverUid: "bob",
+        pairingCode: "ABC123",
+      })
+    );
+  });
+
+  it("denies linking to a user who never shared a pairing code", async () => {
+    const mallory = testEnv.authenticatedContext("mallory").firestore();
+    await assertFails(
+      setDoc(doc(mallory, "links/alice_mallory"), {
+        recoveringUid: "alice",
+        caregiverUid: "mallory",
+        pairingCode: "NOPE00",
+      })
+    );
+  });
+
+  it("denies using someone else's pairing code to link to a different user", async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "pairingCodes/ZZZ999"), { uid: "carol" });
+    });
+    const mallory = testEnv.authenticatedContext("mallory").firestore();
+    await assertFails(
+      setDoc(doc(mallory, "links/alice_mallory"), {
+        recoveringUid: "alice",
+        caregiverUid: "mallory",
+        pairingCode: "ZZZ999",
+      })
     );
   });
 });

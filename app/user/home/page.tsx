@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCurrentUser } from "@/lib/useCurrentUser";
 import { computeStreakUpdate, EMPTY_STREAK_STATE, type StreakState } from "@/lib/streak";
@@ -21,6 +21,10 @@ import {
   todayStr,
 } from "@/lib/db";
 
+/** Grace period before a detected distress phrase auto-triggers help, so a
+ * false positive can be cancelled without the person having to act fast. */
+const COUNTDOWN_SECONDS = 3;
+
 export default function UserHomePage() {
   const router = useRouter();
   const { user, role, loading: authLoading } = useCurrentUser();
@@ -34,20 +38,24 @@ export default function UserHomePage() {
   const [speaking, setSpeaking] = useState(false);
   const [pendingCountdown, setPendingCountdown] = useState<number | null>(null);
 
-  const distressListener = useDistressListener(() => setPendingCountdown(3));
+  const distressListener = useDistressListener(() => setPendingCountdown(COUNTDOWN_SECONDS));
+
+  // The countdown effect fires handleNeedHelp, which is redefined on every
+  // render. Reading it through a ref keeps the effect's only real dependency
+  // the countdown tick, without silencing the exhaustive-deps rule.
+  const needHelpRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     if (pendingCountdown === null) return;
     const timer = setTimeout(() => {
       if (pendingCountdown <= 0) {
         setPendingCountdown(null);
-        handleNeedHelp();
+        needHelpRef.current();
       } else {
         setPendingCountdown((c) => (c ?? 1) - 1);
       }
     }, 1000);
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingCountdown]);
 
   useEffect(() => {
@@ -101,7 +109,7 @@ export default function UserHomePage() {
     }
   }
 
-  async function handleNeedHelp() {
+  const handleNeedHelp = useCallback(async () => {
     if (!script || !user || loading) return;
     setLoading(true);
     setError(null);
@@ -127,7 +135,11 @@ export default function UserHomePage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [script, user, loading]);
+
+  useEffect(() => {
+    needHelpRef.current = handleNeedHelp;
+  }, [handleNeedHelp]);
 
   if (authLoading || !user) {
     return <div className="flex flex-1 items-center justify-center p-8 text-sm">Loading…</div>;
@@ -145,6 +157,9 @@ export default function UserHomePage() {
       </div>
     );
   }
+
+  const upcoming = nextMilestone(streak.currentStreak);
+  const unlocked = unlockedMilestones(streak.longestStreak);
 
   return (
     <div className="flex flex-1 flex-col items-center px-6 py-12">
@@ -240,16 +255,14 @@ export default function UserHomePage() {
           <p className="mt-1 text-xs text-zinc-500">
             Illustrative catalog for the demo - not a live redemption system yet.
           </p>
-          {nextMilestone(streak.currentStreak) && (
+          {upcoming && (
             <p className="mt-2">
-              Next: <strong>{nextMilestone(streak.currentStreak)!.badge}</strong> at{" "}
-              {nextMilestone(streak.currentStreak)!.days} days -{" "}
-              {nextMilestone(streak.currentStreak)!.example}
+              Next: <strong>{upcoming.badge}</strong> at {upcoming.days} days - {upcoming.example}
             </p>
           )}
-          {unlockedMilestones(streak.longestStreak).length > 0 && (
+          {unlocked.length > 0 && (
             <p className="mt-2 text-xs text-zinc-500">
-              Unlocked: {unlockedMilestones(streak.longestStreak).map((m) => m.badge).join(", ")}
+              Unlocked: {unlocked.map((m) => m.badge).join(", ")}
             </p>
           )}
         </div>
