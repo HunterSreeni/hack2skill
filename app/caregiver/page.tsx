@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 import { orderBy } from "firebase/firestore";
 import { useCurrentUser } from "@/lib/useCurrentUser";
 import { isValidPairingCode } from "@/lib/streak";
+import { Button } from "@/components/Button";
+import { Card } from "@/components/Card";
 import {
   lookupPairingCode,
   createLink,
@@ -146,13 +148,9 @@ export default function CaregiverPage() {
               className="flex-1 rounded-lg border border-zinc-300 bg-transparent px-3 py-2 font-mono uppercase tracking-widest dark:border-zinc-700"
               placeholder="ABCDEF"
             />
-            <button
-              type="submit"
-              disabled={pairing || code.length !== 6}
-              className="rounded-lg bg-foreground px-4 py-2 text-sm font-medium text-background disabled:opacity-40"
-            >
+            <Button type="submit" size="md" disabled={pairing || code.length !== 6} className="!rounded-lg">
               {pairing ? "…" : "Link"}
-            </button>
+            </Button>
           </div>
           {pairError && (
             <p role="alert" className="text-sm text-red-600 dark:text-red-400">
@@ -166,16 +164,13 @@ export default function CaregiverPage() {
             <p className="text-sm text-zinc-500">No one linked yet.</p>
           )}
           {Object.values(linkedUsers).map((u) => (
-            <div
-              key={u.uid}
-              className="rounded-2xl border border-zinc-200 p-4 text-sm dark:border-zinc-800"
-            >
-              <p className="font-semibold">{u.currentStreak}-day streak</p>
+            <Card key={u.uid} className="text-sm">
+              <p className="font-semibold text-brand">{u.currentStreak}-day streak</p>
               <p className="text-xs text-zinc-500">Longest: {u.longestStreak} days</p>
               <p className="text-xs text-zinc-500">
                 {u.metBuddyToday ? "Checked in with you today" : "Hasn't checked in with you today"}
               </p>
-            </div>
+            </Card>
           ))}
         </div>
       </main>

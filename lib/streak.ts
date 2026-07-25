@@ -1,5 +1,5 @@
 /**
- * Pure, unit-testable streak logic. No Firestore/network here — the caller
+ * Pure, unit-testable streak logic. No Firestore/network here - the caller
  * reads current state, calls this, and persists the result.
  *
  * Non-punitive by design (see project research doc §1a): a lapse resets the

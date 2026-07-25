@@ -1,5 +1,5 @@
 /**
- * Real, published India helpline numbers — no placeholders.
+ * Real, published India helpline numbers - no placeholders.
  * Sources:
  * - National Toll-Free Drug De-Addiction Helpline (Ministry of Social Justice
  *   & Empowerment, 24x7 since 2017): https://www.pib.gov.in/newsite/PrintRelease.aspx?relid=177380

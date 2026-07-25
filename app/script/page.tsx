@@ -8,6 +8,8 @@ import { useCurrentUser } from "@/lib/useCurrentUser";
 import { computeStreakUpdate, EMPTY_STREAK_STATE, type StreakState } from "@/lib/streak";
 import { nextMilestone, unlockedMilestones } from "@/lib/data/rewards";
 import { speak, stopSpeaking, isVoiceOutputSupported } from "@/lib/voice";
+import { Button } from "@/components/Button";
+import { Card } from "@/components/Card";
 import {
   getScriptDoc,
   getUserDoc,
@@ -117,7 +119,7 @@ export default function ScriptPage() {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-16 text-center">
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          No script found yet — let&apos;s create yours.
+          No script found yet - let&apos;s create yours.
         </p>
         <a href="/checkin" className="rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background">
           Start check-in
@@ -129,7 +131,7 @@ export default function ScriptPage() {
   return (
     <div className="flex flex-1 flex-col items-center px-6 py-12">
       <main className="flex w-full max-w-md flex-col gap-6">
-        <div className="flex items-center justify-between rounded-2xl border border-zinc-200 p-4 text-sm dark:border-zinc-800">
+        <Card className="flex items-center justify-between">
           <div>
             <p className="font-semibold">{streak.currentStreak}-day streak</p>
             <p className="text-xs text-zinc-500">Longest: {streak.longestStreak} days</p>
@@ -137,57 +139,39 @@ export default function ScriptPage() {
           {pairingCode && (
             <div className="text-right">
               <p className="text-xs text-zinc-500">Share code with your caregiver</p>
-              <p className="font-mono text-lg tracking-widest">{pairingCode}</p>
+              <p className="font-mono text-lg tracking-widest text-brand">{pairingCode}</p>
             </div>
           )}
-        </div>
+        </Card>
 
         <div className="flex gap-2">
-          <button
-            onClick={() => handleDailyCheckIn(false)}
-            className="flex-1 rounded-full border border-zinc-300 px-4 py-2 text-sm dark:border-zinc-700"
-          >
+          <Button variant="secondary" size="md" onClick={() => handleDailyCheckIn(false)} className="flex-1">
             I stayed clear today
-          </button>
-          <button
-            onClick={() => handleDailyCheckIn(true)}
-            className="flex-1 rounded-full border border-zinc-300 px-4 py-2 text-sm dark:border-zinc-700"
-          >
+          </Button>
+          <Button variant="secondary" size="md" onClick={() => handleDailyCheckIn(true)} className="flex-1">
             I used today
-          </button>
+          </Button>
         </div>
 
         {pairingCode && (
-          <button
-            onClick={handleMetBuddy}
-            className="rounded-full border border-zinc-300 px-4 py-2 text-sm dark:border-zinc-700"
-          >
+          <Button variant="secondary" size="md" onClick={handleMetBuddy}>
             Have you met your caregiver today? Mark as done
-          </button>
+          </Button>
         )}
 
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold tracking-tight">Your script</h1>
           {isVoiceOutputSupported() && (
-            <button
-              onClick={handleListen}
-              className="rounded-full border border-zinc-300 px-3 py-1 text-xs dark:border-zinc-700"
-            >
+            <Button variant="secondary" size="sm" onClick={handleListen}>
               {speaking ? "Stop" : "Listen"}
-            </button>
+            </Button>
           )}
         </div>
-        <p className="whitespace-pre-line rounded-2xl border border-zinc-200 bg-zinc-50 p-5 text-sm leading-6 dark:border-zinc-800 dark:bg-zinc-900">
-          {script}
-        </p>
+        <Card className="whitespace-pre-line bg-brand-soft text-sm leading-6">{script}</Card>
 
-        <button
-          onClick={handleNeedHelp}
-          disabled={loading}
-          className="flex h-14 w-full items-center justify-center rounded-full bg-red-600 px-6 text-base font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-        >
+        <Button variant="danger" size="lg" onClick={handleNeedHelp} disabled={loading} className="w-full">
           {loading ? "…" : "I need help right now"}
-        </button>
+        </Button>
 
         {error && (
           <p role="alert" className="text-sm text-red-600 dark:text-red-400">
@@ -212,7 +196,7 @@ export default function ScriptPage() {
           {nextMilestone(streak.currentStreak) && (
             <p className="mt-2">
               Next: <strong>{nextMilestone(streak.currentStreak)!.badge}</strong> at{" "}
-              {nextMilestone(streak.currentStreak)!.days} days —{" "}
+              {nextMilestone(streak.currentStreak)!.days} days -{" "}
               {nextMilestone(streak.currentStreak)!.example}
             </p>
           )}

@@ -1,6 +1,6 @@
 /**
  * Simplified check-in questions adapted from the WHO ASSIST (Alcohol, Smoking
- * and Substance Involvement Screening Test) v3.0 — the validated instrument
+ * and Substance Involvement Screening Test) v3.0 - the validated instrument
  * used by NDDTC-AIIMS and India's national substance-use surveys.
  *
  * Step 1 scope: 3 of ASSIST's real involvement questions (frequency of use,
@@ -56,7 +56,7 @@ export type RiskBand = "low" | "moderate" | "high";
 /**
  * Simplified, Step-1-only scoring: sum of the 3 items (max 12), banded.
  * NOT the official ASSIST algorithm (which uses non-linear per-item weights
- * and substance-specific cutoffs) — flagged for main-challenge replacement.
+ * and substance-specific cutoffs) - flagged for main-challenge replacement.
  */
 export function scoreCheckIn(answers: Pick<CheckInAnswers, "frequency" | "problems" | "concern">): {
   score: number;

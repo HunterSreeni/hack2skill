@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 import { useCurrentUser } from "@/lib/useCurrentUser";
 import { saveScriptDoc } from "@/lib/db";
 import { useSpeechToText } from "@/lib/voice";
+import { Button } from "@/components/Button";
+import { Card } from "@/components/Card";
 import {
   SUBSTANCES,
   FREQUENCY_OPTIONS,
@@ -78,7 +80,7 @@ export default function CheckInPage() {
 
   return (
     <div className="flex flex-1 flex-col items-center px-6 py-12">
-      <form onSubmit={handleSubmit} className="flex w-full max-w-md flex-col gap-8">
+      <form onSubmit={handleSubmit} className="flex w-full max-w-md flex-col gap-6">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Quick check-in</h1>
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
@@ -87,6 +89,7 @@ export default function CheckInPage() {
           </p>
         </div>
 
+        <Card className="flex flex-col gap-6">
         <fieldset className="flex flex-col gap-2">
           <legend className="text-sm font-medium">What are you checking in about?</legend>
           <select
@@ -118,7 +121,7 @@ export default function CheckInPage() {
                     onClick={() => setAnswers((a) => ({ ...a, [key]: opt.value }))}
                     className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${
                       answers[key] === opt.value
-                        ? "border-foreground bg-foreground text-background"
+                        ? "border-brand bg-brand text-white"
                         : "border-zinc-300 dark:border-zinc-700"
                     }`}
                   >
@@ -162,6 +165,7 @@ export default function CheckInPage() {
           />
           {voice.error && <p className="text-xs text-red-600 dark:text-red-400">{voice.error}</p>}
         </fieldset>
+        </Card>
 
         {error && (
           <p role="alert" className="text-sm text-red-600 dark:text-red-400">
@@ -169,13 +173,9 @@ export default function CheckInPage() {
           </p>
         )}
 
-        <button
-          type="submit"
-          disabled={!allAnswered || loading}
-          className="flex h-12 w-full items-center justify-center rounded-full bg-foreground px-6 text-base font-medium text-background transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-        >
+        <Button type="submit" size="lg" disabled={!allAnswered || loading} className="w-full">
           {loading ? "Writing your script…" : "Generate my script"}
-        </button>
+        </Button>
       </form>
     </div>
   );
