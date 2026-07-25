@@ -32,13 +32,20 @@ Pro-tip from organizers: functional checks evaluate the app as a whole, not a si
   - Any assumptions made
 
 ## Evaluation criteria (weighted)
-Work in this priority order - high impact first:
-- **High impact**: core functionality/logic quality - get this right first, it drives most of the score
-- **Medium impact**: code quality, security, efficiency, testing - solid engineering practices
-- **Low impact**: accessibility/polish - final layer, don't skip but don't over-invest before the above are solid
+Core functionality/logic quality (smart, dynamic, context-driven assistant) drives most of the score - get that right first. Within engineering quality, work in this priority order:
+1. **Code Quality & Security (top priority)** - clean structure, no leaked secrets/API keys, input validation, sanitized model outputs, no injectable prompts, safe handling of any user data.
+2. **Efficiency** - optimal token/resource use, no redundant model calls, sensible caching, fast response on the core flow.
+3. **Testing** - validated functionality, real scenarios exercised, not just happy-path.
+4. **Accessibility** - final polish layer (WCAG-aligned, inclusive design); required for a perfect score but do not front-load ahead of 1-3.
+
+## Tech constraints
+- **Web app only.** No native mobile app (Android/iOS) - harder to test/evaluate manually. No desktop app.
+- **No local LLMs.** Use a real, cloud-hosted GenAI API (Gemini API) as the core engine.
+- **No mock data or mocked/simulated GenAI responses anywhere in the submission.** Every GenAI call in the shipped app must hit a real, working API integration. Every reference dataset (screening logic, helpline numbers, educational content, facility lookups) must be a real, sourced dataset - not fabricated placeholder content.
 
 ## Working conventions for this repo
 - Single branch only (main) - commit directly, no feature branches
 - Keep commits small and frequent; push regularly so progress is visible
 - Before committing: check for large files/dependencies that would push repo over 10 MB
 - Since only one submission attempt is allowed, verify the app runs end-to-end before considering work "done"
+- Never commit API keys/secrets - use environment variables (.env, gitignored) and document required env vars in the README
