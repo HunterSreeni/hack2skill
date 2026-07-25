@@ -1,6 +1,6 @@
 {
   "name": "steady",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -10,7 +10,8 @@
     "test": "vitest run test/unit",
     "test:integration": "vitest run test/integration/gemini-routes.test.ts --testTimeout=30000",
     "test:rules": "vitest run test/integration/firestore-rules.test.ts --testTimeout=30000",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "version:bump": "node scripts/bump-version.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.13.0",

@@ -76,5 +76,7 @@ Core functionality/logic quality (smart, dynamic, context-driven assistant) driv
 - Single branch only (main) - commit directly, no feature branches
 - Keep commits small and frequent; push regularly so progress is visible
 - Before committing: check for large files/dependencies that would push repo over 10 MB
-- Since only one submission attempt is allowed, verify the app runs end-to-end before considering work "done"
+- Verify the app runs end-to-end before considering work "done" - each submission attempt should be genuinely working
 - Never commit API keys/secrets - use environment variables (.env, gitignored) and document required env vars in the README
+- **Run `npm run version:bump` before every push to main.** Bumps the semver patch version in package.json and regenerates `lib/version.ts`, which the UI footer displays. No CI in this timebox, so this is a manual-but-required step, not automated via a git hook.
+- **All reward/streak-related fields belong only to the "recovering" role's Firestore user doc** (`newUserDoc` in `lib/data/user-doc.ts`) - a caregiver's own profile doc never carries `currentStreak`/`longestStreak`/`lapseHistory`/`pairingCode`/`metBuddyToday`. The caregiver dashboard reading a *linked recovering user's* streak (via `watchStreakStatus`) is a separate, intentional feature (buddy-system support) and stays.

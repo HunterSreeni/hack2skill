@@ -10,11 +10,21 @@
  * scoring band clearly separated from the official one (see scoreCheckIn).
  */
 
+// The real WHO ASSIST v3.0 substance list (all 9 categories the instrument
+// screens for, plus "Other"), not a shortened subset - this also covers the
+// substances with the highest documented prevalence in India per the
+// NDDTC-AIIMS 2019 national survey (alcohol, cannabis, opioids) and GATS
+// India tobacco data, while staying faithful to the actual instrument.
 export const SUBSTANCES = [
+  "Tobacco",
   "Alcohol",
   "Cannabis (bhang/ganja/charas)",
   "Opioids",
-  "Sedatives",
+  "Sedatives or sleeping pills",
+  "Inhalants",
+  "Cocaine",
+  "Amphetamine-type stimulants",
+  "Hallucinogens",
   "Other",
 ] as const;
 
