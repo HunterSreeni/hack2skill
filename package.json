@@ -1,27 +1,38 @@
 {
-  "name": "nextapp",
+  "name": "steady",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run test/unit",
+    "test:integration": "vitest run test/integration/gemini-routes.test.ts --testTimeout=30000",
+    "test:rules": "vitest run test/integration/firestore-rules.test.ts --testTimeout=30000",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@google/genai": "^2.13.0",
+    "firebase": "^12.16.0",
     "next": "16.2.11",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.1",
+    "@playwright/test": "^1.62.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.11",
+    "firebase-tools": "^15.24.0",
+    "netlify-cli": "^27.0.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.10"
   }
 }

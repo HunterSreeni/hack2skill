@@ -1,7 +1,12 @@
 "use client";
 
-import { useState } from "react";
+export const dynamic = "force-dynamic";
+
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { doc, setDoc } from "firebase/firestore";
+import { getFirebaseDb } from "@/lib/firebase";
+import { useCurrentUser } from "@/lib/useCurrentUser";
 import {
   SUBSTANCES,
   FREQUENCY_OPTIONS,
@@ -13,6 +18,7 @@ const ANSWER_KEYS = ["frequency", "problems", "concern"] as const;
 
 export default function CheckInPage() {
   const router = useRouter();
+  const { user, role, loading: authLoading } = useCurrentUser();
   const [substance, setSubstance] = useState<Substance>(SUBSTANCES[0]);
   const [answers, setAnswers] = useState<Record<(typeof ANSWER_KEYS)[number], number | null>>({
     frequency: null,
@@ -25,9 +31,20 @@ export default function CheckInPage() {
 
   const allAnswered = ANSWER_KEYS.every((key) => answers[key] !== null);
 
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+    if (role === "caregiver") {
+      router.push("/caregiver");
+    }
+  }, [authLoading, user, role, router]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!allAnswered || loading) return;
+    if (!allAnswered || loading || !user) return;
 
     setLoading(true);
     setError(null);
@@ -50,7 +67,12 @@ export default function CheckInPage() {
         throw new Error(data.error ?? "Something went wrong.");
       }
 
-      window.localStorage.setItem("steady-script", data.script);
+      await setDoc(doc(getFirebaseDb(), "scripts", user.uid), {
+        script: data.script,
+        substance,
+        band: data.band,
+        updatedAt: Date.now(),
+      });
       router.push("/script");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
