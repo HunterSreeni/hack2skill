@@ -1,17 +1,15 @@
 # PromptWars - Hack2Skill Submission Rules
 
-## Repo
-- GitHub remote: git@github.com:HunterSreeni/hack2skill.git
-- Repository must be PUBLIC
-- Repository must contain ONLY ONE branch - never create/push a second branch
-- Total repo size must stay under 10 MB - avoid committing large assets, datasets, models, node_modules, build artifacts, etc. Use .gitignore aggressively.
-- Maximum 1 submission attempt allowed - treat every push to the remote as final-quality, not a draft.
+## HARD RULES (non-negotiable - violating any of these risks disqualification)
+1. **Repo:** git@github.com:HunterSreeni/hack2skill.git
+2. **Public visibility, always.** Never flip to private, even temporarily, from now until after evaluation. Private/restricted links are not evaluated - no exceptions, no fix-it-after window.
+3. **Single branch only (`main`).** Never create, push, or leave behind a second branch. Commit directly to `main`.
+4. **Repo size < 10 MB, checked at submission time, not just during dev.** Verify with `git count-objects -vH` before every push and again immediately before submitting the link. `node_modules`, build output, and any large assets must never be committed (already gitignored).
+5. **Treat this as a ONE-SHOT submission.** Source docs disagree on the attempt count - the dashboard screenshot said "maximum 1 attempt," the official "[PUB] How to Make a Submission?" doc says "maximum of 3 submission attempts." We work to the stricter number (1) as our operating discipline regardless of which is technically true - every push to `main` should be final-submission-quality, and we do a full end-to-end check before ever submitting the link on the Hack2skill portal. (If we ever confirm 3 is correct and truly need a resubmission, that's a fallback, not the plan.)
+6. **Submit the GitHub repo URL itself** via Hack2skill Portal -> Prompt Wars Dashboard -> Submissions tab. The repo IS the submission, not a zip or build artifact.
 
-## Submission link (dashboard rules - authoritative at deadline)
-- Submit the GitHub repo URL itself on the hack2skill platform - the repo IS the submission, not a zip/build artifact.
-- Repo must be **public at the time of evaluation** - private/restricted links are not evaluated at all, no exceptions or resubmission.
-- Repo size < 10 MB is re-checked at submission, not just during dev - verify with `git count-objects -vH` (or check .git folder size) before submitting.
-- At most ONE submission for this round - there is no fix-it-after window, so do a final end-to-end check before submitting the link.
+## Open item
+The official submission-workflow doc ("[PUB] How to Make a Submission?") does NOT contain the list of challenge verticals/personas referenced by "choose one of the provided challenge verticals." That list must come from a different document - still needed before locking the MVP to one persona.
 
 ## Challenge
 Design and build a multi-modal, GenAI-powered recovery and prevention platform for individuals navigating substance use disorders and their caregivers. Must use generative AI as a core engine to provide:
