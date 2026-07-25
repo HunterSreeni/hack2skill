@@ -8,8 +8,8 @@
 5. **Treat this as a ONE-SHOT submission.** Source docs disagree on the attempt count - the dashboard screenshot said "maximum 1 attempt," the official "[PUB] How to Make a Submission?" doc says "maximum of 3 submission attempts." We work to the stricter number (1) as our operating discipline regardless of which is technically true - every push to `main` should be final-submission-quality, and we do a full end-to-end check before ever submitting the link on the Hack2skill portal. (If we ever confirm 3 is correct and truly need a resubmission, that's a fallback, not the plan.)
 6. **Submit the GitHub repo URL itself** via Hack2skill Portal -> Prompt Wars Dashboard -> Submissions tab. The repo IS the submission, not a zip or build artifact.
 
-## Open item
-The official submission-workflow doc ("[PUB] How to Make a Submission?") does NOT contain the list of challenge verticals/personas referenced by "choose one of the provided challenge verticals." That list must come from a different document - still needed before locking the MVP to one persona.
+## Persona (clarified - no external verticals list exists)
+"Choose one of the provided challenge verticals" refers to the problem statement itself, not a separate menu. The end users ARE the persona: people navigating substance use recovery, and their caregivers. Every feature, script, and piece of copy must stay aligned to this real persona - not drift into a generic wellness/productivity app. If the MVP needs to prioritize depth over breadth, pick ONE of {person-in-recovery, caregiver} as the primary, fully-built-out flow, with the other present but lighter - not both half-built.
 
 ## Challenge
 Design and build a multi-modal, GenAI-powered recovery and prevention platform for individuals navigating substance use disorders and their caregivers. Must use generative AI as a core engine to provide:
