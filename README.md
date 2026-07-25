@@ -38,8 +38,17 @@ standalone feature.
 5. **"I need help right now"** (`/api/crisis-response`) - the saved script
    is sent back to Gemini with a "this is happening right now" framing for
    a calming, personalized read-back, **and** writes a real-time alert to
-   any linked caregiver via Firestore.
-6. **Rewards catalog** - streak milestones map to badges and *illustrative*
+   any linked caregiver via Firestore. Shown alongside a guided box-breathing
+   grounding exercise, not an alarm sound - a loud alert raises panic in
+   someone already in distress rather than lowering it.
+6. **Opt-in distress-phrase detection** (`lib/voice.ts`) - the person can
+   turn on continuous listening for phrases like "I need help" or "I want
+   to use" (off by default - always-on mic is a real privacy tradeoff, not
+   silently enabled). A match triggers the same crisis flow automatically,
+   after a 3-second cancelable countdown so a single stray phrase doesn't
+   fire an unwanted caregiver alert. Click-to-speak dictation for the
+   check-in trigger note is a separate, unrelated feature and unaffected.
+7. **Rewards catalog** - streak milestones map to badges and *illustrative*
    reward categories (`lib/data/rewards.ts`). This is explicitly NOT a live
    commerce/payment integration - real partner deals for coupons/cashback
    are a business-development step outside a hackathon timebox, and the UI
@@ -93,11 +102,18 @@ See [`TESTING.md`](./TESTING.md) for the full breakdown. Summary:
 
 ## Assumptions and known limitations
 
-- **Google sign-in with no existing profile defaults to the "recovering"
-  role.** If someone reaches `/login` with Google and has never signed up
-  before (skipping the role picker on `/signup`), we default them to the
-  primary persona rather than leaving them stuck with no profile. Signing
-  up via `/signup` first (where the role picker lives) is the intended path.
+- **Two dedicated portals, no shared role picker.** `/user` is the entry
+  point for the person in recovery (signup, login, Google sign-in, forgot
+  password, all in one page); `/caregiver` is the same for caregivers. Each
+  is self-contained specifically so the recovering person's path stays as
+  fast as possible, and so this route tree could be split into two fully
+  separate deployments later without touching the other side. The old
+  shared `/signup`, `/login`, `/checkin`, `/script` routes still work as
+  redirects to their new locations, for backward compatibility.
+- **Logged-in users landing back on `/user` or `/caregiver` see the form
+  again rather than an automatic redirect to their dashboard** - a known
+  minor UX gap, not a functional bug (the Header still reflects their
+  actual session).
 - **Simplified ASSIST scoring**, not the official multi-branch WHO
   algorithm (documented in `lib/data/assist-lite.ts`).
 - **Typed check-in, not voice-first.** The problem statement's "zero-typing
