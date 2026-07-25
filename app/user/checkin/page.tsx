@@ -95,7 +95,7 @@ export default function CheckInPage() {
           <select
             value={substance}
             onChange={(e) => setSubstance(e.target.value as Substance)}
-            className="rounded-lg border border-zinc-300 bg-transparent px-3 py-2 text-sm dark:border-zinc-700"
+            className="rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700"
             aria-label="Substance"
           >
             {SUBSTANCES.map((s) => (
@@ -160,7 +160,7 @@ export default function CheckInPage() {
             onChange={(e) => setTriggerNote(e.target.value)}
             maxLength={500}
             rows={4}
-            className="rounded-lg border border-zinc-300 bg-transparent px-3 py-2 text-sm dark:border-zinc-700"
+            className="rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700"
             placeholder="e.g. Friday evenings after work, alone - I want to be present for my daughter's exams next month."
           />
           {voice.error && <p className="text-xs text-red-600 dark:text-red-400">{voice.error}</p>}

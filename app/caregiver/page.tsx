@@ -118,7 +118,7 @@ export default function CaregiverAuthPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="rounded-lg border border-zinc-300 bg-transparent px-3 py-2 dark:border-zinc-700"
+              className="rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700"
             />
           </label>
 
@@ -130,7 +130,7 @@ export default function CaregiverAuthPage() {
               minLength={mode === "signup" ? 6 : undefined}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="rounded-lg border border-zinc-300 bg-transparent px-3 py-2 dark:border-zinc-700"
+              className="rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700"
             />
           </label>
 

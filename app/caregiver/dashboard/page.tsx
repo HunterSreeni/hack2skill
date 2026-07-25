@@ -145,7 +145,7 @@ export default function CaregiverDashboardPage() {
               value={code}
               onChange={(e) => setCode(e.target.value)}
               maxLength={6}
-              className="flex-1 rounded-lg border border-zinc-300 bg-transparent px-3 py-2 font-mono uppercase tracking-widest dark:border-zinc-700"
+              className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 font-mono uppercase tracking-widest dark:border-zinc-700"
               placeholder="ABCDEF"
             />
             <Button type="submit" size="md" disabled={pairing || code.length !== 6} className="!rounded-lg">
