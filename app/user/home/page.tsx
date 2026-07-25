@@ -7,9 +7,10 @@ import { useRouter } from "next/navigation";
 import { useCurrentUser } from "@/lib/useCurrentUser";
 import { computeStreakUpdate, EMPTY_STREAK_STATE, type StreakState } from "@/lib/streak";
 import { nextMilestone, unlockedMilestones } from "@/lib/data/rewards";
-import { speak, stopSpeaking, isVoiceOutputSupported } from "@/lib/voice";
+import { speak, stopSpeaking, isVoiceOutputSupported, useDistressListener } from "@/lib/voice";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
+import { GroundingExercise } from "@/components/GroundingExercise";
 import {
   getScriptDoc,
   getUserDoc,
@@ -31,6 +32,23 @@ export default function UserHomePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [speaking, setSpeaking] = useState(false);
+  const [pendingCountdown, setPendingCountdown] = useState<number | null>(null);
+
+  const distressListener = useDistressListener(() => setPendingCountdown(3));
+
+  useEffect(() => {
+    if (pendingCountdown === null) return;
+    const timer = setTimeout(() => {
+      if (pendingCountdown <= 0) {
+        setPendingCountdown(null);
+        handleNeedHelp();
+      } else {
+        setPendingCountdown((c) => (c ?? 1) - 1);
+      }
+    }, 1000);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingCountdown]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -173,6 +191,32 @@ export default function UserHomePage() {
           {loading ? "…" : "I need help right now"}
         </Button>
 
+        {distressListener.supported && (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={distressListener.toggle}
+            aria-pressed={distressListener.enabled}
+          >
+            {distressListener.enabled ? "Listening for distress phrases - tap to stop" : "Listen for distress phrases"}
+          </Button>
+        )}
+        {distressListener.error && (
+          <p className="text-xs text-red-600 dark:text-red-400">{distressListener.error}</p>
+        )}
+
+        {pendingCountdown !== null && (
+          <div
+            role="alert"
+            className="flex items-center justify-between rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm dark:border-amber-800 dark:bg-amber-950"
+          >
+            <span>Heard something concerning - getting support in {pendingCountdown}s.</span>
+            <Button variant="secondary" size="sm" onClick={() => setPendingCountdown(null)}>
+              Cancel
+            </Button>
+          </div>
+        )}
+
         {error && (
           <p role="alert" className="text-sm text-red-600 dark:text-red-400">
             {error}
@@ -180,12 +224,15 @@ export default function UserHomePage() {
         )}
 
         {crisisMessage && (
-          <p
-            role="status"
-            className="whitespace-pre-line rounded-2xl border border-red-200 bg-red-50 p-5 text-sm leading-6 dark:border-red-900 dark:bg-red-950"
-          >
-            {crisisMessage}
-          </p>
+          <>
+            <GroundingExercise />
+            <p
+              role="status"
+              className="whitespace-pre-line rounded-2xl border border-red-200 bg-red-50 p-5 text-sm leading-6 dark:border-red-900 dark:bg-red-950"
+            >
+              {crisisMessage}
+            </p>
+          </>
         )}
 
         <div className="rounded-2xl border border-zinc-200 p-4 text-sm dark:border-zinc-800">
