@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { onAuthStateChanged, type User } from "firebase/auth";
-import { doc, onSnapshot } from "firebase/firestore";
-import { getFirebaseAuth, getFirebaseDb } from "@/lib/firebase";
+import { getFirebaseAuth } from "@/lib/firebase";
+import { watchUserDoc } from "@/lib/db";
 import type { UserRole } from "@/lib/data/user-doc";
 
 export function useCurrentUser() {
@@ -24,12 +24,10 @@ export function useCurrentUser() {
 
   useEffect(() => {
     if (!user) return;
-    const unsubDoc = onSnapshot(doc(getFirebaseDb(), "users", user.uid), (snap) => {
-      const data = snap.data();
+    return watchUserDoc(user.uid, (data) => {
       setRole((data?.role as UserRole) ?? null);
       setLoading(false);
     });
-    return unsubDoc;
   }, [user]);
 
   return { user, role, loading };

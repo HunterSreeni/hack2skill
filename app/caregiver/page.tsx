@@ -4,33 +4,20 @@ export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  doc,
-  getDoc,
-  setDoc,
-  onSnapshot,
-  collection,
-  query,
-  where,
-  orderBy,
-} from "firebase/firestore";
-import { getFirebaseDb } from "@/lib/firebase";
+import { orderBy } from "firebase/firestore";
 import { useCurrentUser } from "@/lib/useCurrentUser";
 import { isValidPairingCode } from "@/lib/streak";
-import type { UserDoc } from "@/lib/data/user-doc";
+import {
+  lookupPairingCode,
+  createLink,
+  watchLinkedRecoveringUids,
+  watchStreakStatus,
+  watchCaregiverAlerts,
+  type StreakSnapshot,
+  type AlertDoc,
+} from "@/lib/db";
 
-type LinkedUser = { uid: string } & Pick<
-  UserDoc,
-  "currentStreak" | "longestStreak" | "metBuddyToday"
->;
-
-type Alert = {
-  id: string;
-  userId: string;
-  type: "crisis" | "lapse";
-  createdAt: number;
-  acknowledged: boolean;
-};
+type LinkedUser = { uid: string } & StreakSnapshot;
 
 export default function CaregiverPage() {
   const router = useRouter();
@@ -40,8 +27,8 @@ export default function CaregiverPage() {
   const [pairError, setPairError] = useState<string | null>(null);
   const [pairing, setPairing] = useState(false);
 
-  const [linkedUsers, setLinkedUsers] = useState<LinkedUser[]>([]);
-  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [linkedUsers, setLinkedUsers] = useState<Record<string, LinkedUser>>({});
+  const [alerts, setAlerts] = useState<AlertDoc[]>([]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -54,43 +41,45 @@ export default function CaregiverPage() {
     }
   }, [authLoading, user, role, router]);
 
-  // Real-time: linked recovering users' streak status.
+  // Live: which recovering users are linked to this caregiver, then a live
+  // streak-status listener per user - genuinely real-time, not a one-time
+  // snapshot re-fetched only when the link list itself changes.
   useEffect(() => {
     if (!user) return;
-    const q = query(collection(getFirebaseDb(), "links"), where("caregiverUid", "==", user.uid));
-    const unsub = onSnapshot(q, async (snap) => {
-      const users = await Promise.all(
-        snap.docs.map(async (d) => {
-          const recoveringUid = d.data().recoveringUid as string;
-          const userSnap = await getDoc(doc(getFirebaseDb(), "users", recoveringUid));
-          const data = userSnap.data();
-          return {
-            uid: recoveringUid,
-            currentStreak: data?.currentStreak ?? 0,
-            longestStreak: data?.longestStreak ?? 0,
-            metBuddyToday: data?.metBuddyToday ?? false,
-          };
-        })
-      );
-      setLinkedUsers(users);
+    const userUnsubs = new Map<string, () => void>();
+
+    const unsubLinks = watchLinkedRecoveringUids(user.uid, (uids) => {
+      for (const [uid, unsub] of userUnsubs) {
+        if (!uids.includes(uid)) {
+          unsub();
+          userUnsubs.delete(uid);
+          setLinkedUsers((prev) => {
+            const next = { ...prev };
+            delete next[uid];
+            return next;
+          });
+        }
+      }
+      for (const uid of uids) {
+        if (userUnsubs.has(uid)) continue;
+        userUnsubs.set(
+          uid,
+          watchStreakStatus(uid, (status) => {
+            setLinkedUsers((prev) => ({ ...prev, [uid]: { uid, ...status } }));
+          })
+        );
+      }
     });
-    return unsub;
+
+    return () => {
+      unsubLinks();
+      for (const unsub of userUnsubs.values()) unsub();
+    };
   }, [user]);
 
-  // Real-time: unacknowledged alerts for this caregiver.
   useEffect(() => {
     if (!user) return;
-    const q = query(
-      collection(getFirebaseDb(), "alerts"),
-      where("caregiverIds", "array-contains", user.uid),
-      orderBy("createdAt", "desc")
-    );
-    const unsub = onSnapshot(q, (snap) => {
-      setAlerts(
-        snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Alert, "id">) }))
-      );
-    });
-    return unsub;
+    return watchCaregiverAlerts(user.uid, orderBy, setAlerts);
   }, [user]);
 
   async function handlePair(e: React.FormEvent) {
@@ -104,16 +93,11 @@ export default function CaregiverPage() {
       if (!isValidPairingCode(upperCode)) {
         throw new Error("That code doesn't look right - check and try again.");
       }
-      const codeSnap = await getDoc(doc(getFirebaseDb(), "pairingCodes", upperCode));
-      if (!codeSnap.exists()) {
+      const recoveringUid = await lookupPairingCode(upperCode);
+      if (!recoveringUid) {
         throw new Error("No one found with that code.");
       }
-      const recoveringUid = codeSnap.data().uid as string;
-      await setDoc(doc(getFirebaseDb(), "links", `${recoveringUid}_${user.uid}`), {
-        recoveringUid,
-        caregiverUid: user.uid,
-        createdAt: Date.now(),
-      });
+      await createLink(recoveringUid, user.uid);
       setCode("");
     } catch (err) {
       setPairError(err instanceof Error ? err.message : "Something went wrong.");
@@ -178,10 +162,10 @@ export default function CaregiverPage() {
         </form>
 
         <div className="flex flex-col gap-3">
-          {linkedUsers.length === 0 && (
+          {Object.keys(linkedUsers).length === 0 && (
             <p className="text-sm text-zinc-500">No one linked yet.</p>
           )}
-          {linkedUsers.map((u) => (
+          {Object.values(linkedUsers).map((u) => (
             <div
               key={u.uid}
               className="rounded-2xl border border-zinc-200 p-4 text-sm dark:border-zinc-800"

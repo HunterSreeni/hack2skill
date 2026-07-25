@@ -4,9 +4,9 @@ export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { doc, setDoc } from "firebase/firestore";
-import { getFirebaseDb } from "@/lib/firebase";
 import { useCurrentUser } from "@/lib/useCurrentUser";
+import { saveScriptDoc } from "@/lib/db";
+import { useSpeechToText } from "@/lib/voice";
 import {
   SUBSTANCES,
   FREQUENCY_OPTIONS,
@@ -28,6 +28,7 @@ export default function CheckInPage() {
   const [triggerNote, setTriggerNote] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const voice = useSpeechToText(setTriggerNote);
 
   const allAnswered = ANSWER_KEYS.every((key) => answers[key] !== null);
 
@@ -67,12 +68,7 @@ export default function CheckInPage() {
         throw new Error(data.error ?? "Something went wrong.");
       }
 
-      await setDoc(doc(getFirebaseDb(), "scripts", user.uid), {
-        script: data.script,
-        substance,
-        band: data.band,
-        updatedAt: Date.now(),
-      });
+      await saveScriptDoc(user.uid, { script: data.script, substance, band: data.band });
       router.push("/script");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
@@ -135,11 +131,26 @@ export default function CheckInPage() {
         })}
 
         <fieldset className="flex flex-col gap-2">
-          <label htmlFor="triggerNote" className="text-sm font-medium">
-            In your own words: what&apos;s your biggest trigger, and why do you
-            want to stay clear of it? (optional, but this is what makes your
-            script personal)
-          </label>
+          <div className="flex items-center justify-between">
+            <label htmlFor="triggerNote" className="text-sm font-medium">
+              In your own words: what&apos;s your biggest trigger, and why do you
+              want to stay clear of it?
+            </label>
+            {voice.supported && (
+              <button
+                type="button"
+                onClick={voice.listening ? voice.stop : voice.start}
+                aria-pressed={voice.listening}
+                className={`shrink-0 rounded-full border px-3 py-1 text-xs ${
+                  voice.listening
+                    ? "border-red-400 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300"
+                    : "border-zinc-300 dark:border-zinc-700"
+                }`}
+              >
+                {voice.listening ? "Listening… tap to stop" : "Speak instead"}
+              </button>
+            )}
+          </div>
           <textarea
             id="triggerNote"
             value={triggerNote}
@@ -147,8 +158,9 @@ export default function CheckInPage() {
             maxLength={500}
             rows={4}
             className="rounded-lg border border-zinc-300 bg-transparent px-3 py-2 text-sm dark:border-zinc-700"
-            placeholder="e.g. Friday evenings after work, alone — I want to be present for my daughter's exams next month."
+            placeholder="e.g. Friday evenings after work, alone - I want to be present for my daughter's exams next month."
           />
+          {voice.error && <p className="text-xs text-red-600 dark:text-red-400">{voice.error}</p>}
         </fieldset>
 
         {error && (

@@ -5,8 +5,8 @@ export const dynamic = "force-dynamic";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
-import { getFirebaseAuth, getFirebaseDb } from "@/lib/firebase";
+import { getFirebaseAuth } from "@/lib/firebase";
+import { updateUserDoc, createPairingCode } from "@/lib/db";
 import { newUserDoc, type UserRole } from "@/lib/data/user-doc";
 import { generatePairingCode } from "@/lib/streak";
 
@@ -24,16 +24,13 @@ export default function SignupPage() {
     setError(null);
 
     try {
-      const auth = getFirebaseAuth();
-      const db = getFirebaseDb();
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      const userDoc = newUserDoc(role);
-      await setDoc(doc(db, "users", cred.user.uid), userDoc);
+      const cred = await createUserWithEmailAndPassword(getFirebaseAuth(), email, password);
+      await updateUserDoc(cred.user.uid, newUserDoc(role));
 
       if (role === "recovering") {
         const code = generatePairingCode();
-        await setDoc(doc(db, "pairingCodes", code), { uid: cred.user.uid });
-        await setDoc(doc(db, "users", cred.user.uid), { pairingCode: code }, { merge: true });
+        await createPairingCode(cred.user.uid, code);
+        await updateUserDoc(cred.user.uid, { pairingCode: code });
         router.push("/checkin");
       } else {
         router.push("/caregiver");

@@ -4,16 +4,19 @@ export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { doc, getDoc, setDoc, addDoc, collection, query, where, getDocs } from "firebase/firestore";
-import { getFirebaseDb } from "@/lib/firebase";
 import { useCurrentUser } from "@/lib/useCurrentUser";
 import { computeStreakUpdate, EMPTY_STREAK_STATE, type StreakState } from "@/lib/streak";
-import type { UserDoc } from "@/lib/data/user-doc";
 import { nextMilestone, unlockedMilestones } from "@/lib/data/rewards";
-
-function todayStr() {
-  return new Date().toISOString().slice(0, 10);
-}
+import { speak, stopSpeaking, isVoiceOutputSupported } from "@/lib/voice";
+import {
+  getScriptDoc,
+  getUserDoc,
+  updateUserDoc,
+  getLinkedCaregiverIds,
+  createAlert,
+  streakStateFromUserDoc,
+  todayStr,
+} from "@/lib/db";
 
 export default function ScriptPage() {
   const router = useRouter();
@@ -25,6 +28,7 @@ export default function ScriptPage() {
   const [crisisMessage, setCrisisMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [speaking, setSpeaking] = useState(false);
 
   useEffect(() => {
     if (authLoading) return;
@@ -38,56 +42,42 @@ export default function ScriptPage() {
     }
 
     (async () => {
-      const [scriptSnap, userSnap] = await Promise.all([
-        getDoc(doc(getFirebaseDb(), "scripts", user.uid)),
-        getDoc(doc(getFirebaseDb(), "users", user.uid)),
-      ]);
-      setScript(scriptSnap.exists() ? (scriptSnap.data().script as string) : null);
-      const userData = userSnap.data() as UserDoc | undefined;
+      const [scriptText, userData] = await Promise.all([getScriptDoc(user.uid), getUserDoc(user.uid)]);
+      setScript(scriptText);
       if (userData) {
-        setStreak({
-          currentStreak: userData.currentStreak,
-          longestStreak: userData.longestStreak,
-          lastCheckInDate: userData.lastCheckInDate,
-          lapseHistory: userData.lapseHistory ?? [],
-        });
+        setStreak(streakStateFromUserDoc(userData));
         setPairingCode(userData.pairingCode ?? null);
       }
     })();
   }, [authLoading, user, role, router]);
 
-  async function getLinkedCaregiverIds(recoveringUid: string): Promise<string[]> {
-    const q = query(collection(getFirebaseDb(), "links"), where("recoveringUid", "==", recoveringUid));
-    const snap = await getDocs(q);
-    return snap.docs.map((d) => d.data().caregiverUid as string);
+  useEffect(() => () => stopSpeaking(), []);
+
+  function handleListen() {
+    if (!script) return;
+    if (speaking) {
+      stopSpeaking();
+      setSpeaking(false);
+      return;
+    }
+    speak(script, () => setSpeaking(false));
+    setSpeaking(true);
   }
 
   async function handleMetBuddy() {
     if (!user) return;
-    await setDoc(
-      doc(getFirebaseDb(), "users", user.uid),
-      { metBuddyToday: true, lastMetDate: todayStr() },
-      { merge: true }
-    );
+    await updateUserDoc(user.uid, { metBuddyToday: true, lastMetDate: todayStr() });
   }
 
   async function handleDailyCheckIn(isLapse: boolean) {
     if (!user) return;
     const updated = computeStreakUpdate(streak, todayStr(), isLapse);
     setStreak(updated);
-    await setDoc(doc(getFirebaseDb(), "users", user.uid), updated, { merge: true });
+    await updateUserDoc(user.uid, updated);
 
     if (isLapse) {
       const caregiverIds = await getLinkedCaregiverIds(user.uid);
-      if (caregiverIds.length > 0) {
-        await addDoc(collection(getFirebaseDb(), "alerts"), {
-          userId: user.uid,
-          caregiverIds,
-          type: "lapse",
-          createdAt: Date.now(),
-          acknowledged: false,
-        });
-      }
+      await createAlert(user.uid, caregiverIds, "lapse");
     }
   }
 
@@ -109,16 +99,9 @@ export default function ScriptPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Something went wrong.");
       setCrisisMessage(data.message);
-
-      if (caregiverIds.length > 0) {
-        await addDoc(collection(getFirebaseDb(), "alerts"), {
-          userId: user.uid,
-          caregiverIds,
-          type: "crisis",
-          createdAt: Date.now(),
-          acknowledged: false,
-        });
-      }
+      speak(data.message, () => setSpeaking(false)); // read the crisis response aloud - highest cognitive load moment, hearing beats reading
+      setSpeaking(true);
+      await createAlert(user.uid, caregiverIds, "crisis");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
@@ -183,7 +166,17 @@ export default function ScriptPage() {
           </button>
         )}
 
-        <h1 className="text-2xl font-semibold tracking-tight">Your script</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-semibold tracking-tight">Your script</h1>
+          {isVoiceOutputSupported() && (
+            <button
+              onClick={handleListen}
+              className="rounded-full border border-zinc-300 px-3 py-1 text-xs dark:border-zinc-700"
+            >
+              {speaking ? "Stop" : "Listen"}
+            </button>
+          )}
+        </div>
         <p className="whitespace-pre-line rounded-2xl border border-zinc-200 bg-zinc-50 p-5 text-sm leading-6 dark:border-zinc-800 dark:bg-zinc-900">
           {script}
         </p>

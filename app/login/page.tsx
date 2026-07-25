@@ -5,8 +5,8 @@ export const dynamic = "force-dynamic";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
-import { getFirebaseAuth, getFirebaseDb } from "@/lib/firebase";
+import { getFirebaseAuth } from "@/lib/firebase";
+import { getUserDoc } from "@/lib/db";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -22,9 +22,8 @@ export default function LoginPage() {
 
     try {
       const cred = await signInWithEmailAndPassword(getFirebaseAuth(), email, password);
-      const snap = await getDoc(doc(getFirebaseDb(), "users", cred.user.uid));
-      const role = snap.data()?.role;
-      router.push(role === "caregiver" ? "/caregiver" : "/checkin");
+      const userData = await getUserDoc(cred.user.uid);
+      router.push(userData?.role === "caregiver" ? "/caregiver" : "/checkin");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
       setLoading(false);
