@@ -1,13 +1,20 @@
 @import "tailwindcss";
 
+/*
+ * Sage green + warm neutrals, not saturated teal/stark white. Sage green is
+ * specifically documented as the color associated with growth, renewal, and
+ * hope in addiction-recovery contexts (vs. blue's more generic "calm/trust"
+ * association) - warm neutrals over pure white read less clinical. Red stays
+ * reserved strictly for true crisis moments, never used decoratively.
+ */
 :root {
-  --background: #fafaf9;
-  --foreground: #1c1917;
-  --brand: #0f766e;
-  --brand-hover: #0d5f58;
-  --brand-soft: #f0fdfa;
-  --border: #e7e5e4;
-  --surface: #ffffff;
+  --background: #f7f5f0;
+  --foreground: #2d2a24;
+  --brand: #4f7a5c;
+  --brand-hover: #3f6249;
+  --brand-soft: #eef3ea;
+  --border: #e6e1d6;
+  --surface: #fffdf9;
 }
 
 @theme inline {
@@ -24,13 +31,13 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0c0a09;
-    --foreground: #fafaf9;
-    --brand: #2dd4bf;
-    --brand-hover: #5eead4;
-    --brand-soft: #134e4a;
-    --border: #292524;
-    --surface: #1c1917;
+    --background: #1a1815;
+    --foreground: #f3f0e8;
+    --brand: #8fb99d;
+    --brand-hover: #a9cbb6;
+    --brand-soft: #253028;
+    --border: #332f27;
+    --surface: #221f1a;
   }
 }
 
