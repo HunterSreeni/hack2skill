@@ -114,12 +114,18 @@ See [`TESTING.md`](./TESTING.md) for the full breakdown. Summary:
 
 ## Known upstream issue
 
-`npm audit` reports high-severity advisories inside Next.js 16.2.11's own
-bundled build-time dependencies (postcss, sharp, the eslint/minimatch
-chain) - not exploitable via this app's runtime/user-facing surface, and
-Next has not shipped a patched release yet. `npm audit fix --force` would
-downgrade to a very old Next version, which is not a real fix. Tracking
-upstream for a patched release rather than downgrading.
+`npm audit` reports advisories inside two places, neither exploitable via
+this app's actual runtime/user-facing surface:
+- Next.js 16.2.11's own bundled build-time dependencies (postcss, sharp,
+  the eslint/minimatch chain). Next has not shipped a patched release yet;
+  `npm audit fix --force` would downgrade to a very old Next version,
+  which is not a real fix.
+- `@google/genai`'s optional MCP-server sub-dependency chain
+  (`@modelcontextprotocol/sdk` → `@hono/node-server`), unused by this app -
+  we only call `ai.models.generateContent`, never the SDK's optional local
+  MCP server.
+
+Tracking upstream for patched releases rather than downgrading either.
 
 ## Tech stack
 
