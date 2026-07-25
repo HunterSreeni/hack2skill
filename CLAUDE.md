@@ -7,6 +7,12 @@
 - Total repo size must stay under 10 MB - avoid committing large assets, datasets, models, node_modules, build artifacts, etc. Use .gitignore aggressively.
 - Maximum 1 submission attempt allowed - treat every push to the remote as final-quality, not a draft.
 
+## Submission link (dashboard rules - authoritative at deadline)
+- Submit the GitHub repo URL itself on the hack2skill platform - the repo IS the submission, not a zip/build artifact.
+- Repo must be **public at the time of evaluation** - private/restricted links are not evaluated at all, no exceptions or resubmission.
+- Repo size < 10 MB is re-checked at submission, not just during dev - verify with `git count-objects -vH` (or check .git folder size) before submitting.
+- At most ONE submission for this round - there is no fix-it-after window, so do a final end-to-end check before submitting the link.
+
 ## Challenge
 Design and build a multi-modal, GenAI-powered recovery and prevention platform for individuals navigating substance use disorders and their caregivers. Must use generative AI as a core engine to provide:
 - Zero-typing interventions
