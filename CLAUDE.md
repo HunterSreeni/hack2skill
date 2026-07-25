@@ -17,6 +17,7 @@
 4. **Repo size < 10 MB, checked at submission time, not just during dev.** Verify with `git count-objects -vH` before every push and again immediately before submitting the link. `node_modules`, build output, and any large assets must never be committed (already gitignored).
 5. **Every submitted attempt must be genuinely, fully working end-to-end** - a real live deployed link, real Gemini calls, no broken flows. Don't submit half-done work just to "use" an attempt.
 6. **Submit the GitHub repo URL itself** via Hack2skill Portal -> Prompt Wars Dashboard -> Submissions tab. The repo IS the submission, not a zip or build artifact.
+7. **No em dashes (—) anywhere** - submission form text, README, TESTING.md, commit messages, code comments, any output for this project. Use a period, comma, or regular hyphen instead. Also applies to the submission form's 1024-character fields specifically - every character counts there, so keep sentences tight regardless.
 
 ## Primary persona (confirmed)
 **Person in recovery** is the primary, fully-built-out flow: check-in -> personalized emergency script -> zero-typing crisis trigger (the "when cognitive load is highest" centerpiece from the problem statement). Caregiver flow is present but lighter/secondary - do not build both at equal depth; depth on one persona beats breadth across two.
