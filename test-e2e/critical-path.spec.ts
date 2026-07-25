@@ -41,13 +41,12 @@ test("critical path: signup -> check-in -> pairing -> crisis -> live caregiver a
   const recovering = await recoveringCtx.newPage();
   const caregiver = await caregiverCtx.newPage();
 
-  // --- Recovering user signs up ---
-  await recovering.goto(`${BASE_URL}/signup`);
-  await recovering.getByRole("radio", { name: "In recovery" }).click();
+  // --- Recovering user signs up (dedicated /user entry, no role picker) ---
+  await recovering.goto(`${BASE_URL}/user`);
   await recovering.getByLabel("Email").fill(recoveringEmail);
   await recovering.getByLabel("Password").fill(password);
   await recovering.getByRole("button", { name: "Create account" }).click();
-  await expect(recovering).toHaveURL(/\/checkin/, { timeout: 15000 });
+  await expect(recovering).toHaveURL(/\/user\/checkin/, { timeout: 15000 });
 
   // --- Check-in ---
   for (const label of [
@@ -63,7 +62,7 @@ test("critical path: signup -> check-in -> pairing -> crisis -> live caregiver a
   await recovering.getByRole("button", { name: "Generate my script" }).click();
 
   // Real Gemini call - give it real time to respond.
-  await expect(recovering).toHaveURL(/\/script/, { timeout: 30000 });
+  await expect(recovering).toHaveURL(/\/user\/home/, { timeout: 30000 });
   await expect(recovering.getByRole("heading", { name: "Your script" })).toBeVisible();
 
   const pairingCode = await recovering
@@ -71,13 +70,12 @@ test("critical path: signup -> check-in -> pairing -> crisis -> live caregiver a
     .textContent();
   expect(pairingCode).toBeTruthy();
 
-  // --- Caregiver signs up and links ---
-  await caregiver.goto(`${BASE_URL}/signup`);
-  await caregiver.getByRole("radio", { name: "A caregiver" }).click();
+  // --- Caregiver signs up and links (dedicated /caregiver entry, no role picker) ---
+  await caregiver.goto(`${BASE_URL}/caregiver`);
   await caregiver.getByLabel("Email").fill(caregiverEmail);
   await caregiver.getByLabel("Password").fill(password);
   await caregiver.getByRole("button", { name: "Create account" }).click();
-  await expect(caregiver).toHaveURL(/\/caregiver/, { timeout: 15000 });
+  await expect(caregiver).toHaveURL(/\/caregiver\/dashboard/, { timeout: 15000 });
 
   await caregiver.getByLabel(/enter their share code/i).fill(pairingCode!.trim());
   await caregiver.getByRole("button", { name: "Link" }).click();

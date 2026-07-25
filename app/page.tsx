@@ -10,13 +10,16 @@ export default function Home() {
           and a caregiver who&apos;s linked in when it matters most.
         </p>
         <Link
-          href="/signup"
+          href="/user"
           className="mt-2 flex h-12 w-full items-center justify-center rounded-full bg-brand px-6 text-base font-medium text-white transition-colors hover:bg-brand-hover"
         >
-          Get started
+          I&apos;m in recovery
         </Link>
-        <Link href="/login" className="text-xs text-zinc-500 underline dark:text-zinc-500">
-          Already have an account? Log in
+        <Link
+          href="/caregiver"
+          className="flex h-12 w-full items-center justify-center rounded-full border border-brand px-6 text-base font-medium text-brand transition-colors hover:bg-brand-soft"
+        >
+          I&apos;m a caregiver
         </Link>
       </main>
     </div>

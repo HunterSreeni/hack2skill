@@ -11,16 +11,20 @@ import {
 } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase";
 import { signInWithGoogle, resetPassword } from "@/lib/auth-actions";
-import { getUserDoc, updateUserDoc } from "@/lib/db";
+import { getUserDoc, updateUserDoc, createPairingCode } from "@/lib/db";
 import { newUserDoc } from "@/lib/data/user-doc";
+import { generatePairingCode } from "@/lib/streak";
 import { Button } from "@/components/Button";
 
 /**
- * Dedicated entry point for caregivers - separate from /user so each
- * persona's path can be split into its own deployment later without
- * touching the other.
+ * Dedicated entry point for the person in recovery - the primary persona.
+ * No role picker: arriving at this URL already says who you are, so signup
+ * is zero extra decisions. Kept as its own route (not shared with
+ * /caregiver) specifically so this path stays as fast as possible and so
+ * this route tree can be split into its own deployment later without
+ * touching the caregiver side at all.
  */
-export default function CaregiverAuthPage() {
+export default function UserAuthPage() {
   const router = useRouter();
   const [mode, setMode] = useState<"signup" | "login">("signup");
   const [email, setEmail] = useState("");
@@ -31,14 +35,25 @@ export default function CaregiverAuthPage() {
 
   async function ensureProfileAndEnter(user: User, isNewSignup: boolean) {
     if (isNewSignup) {
-      await updateUserDoc(user.uid, newUserDoc("caregiver"));
-    } else {
-      const existing = await getUserDoc(user.uid);
-      if (!existing) {
-        await updateUserDoc(user.uid, newUserDoc("caregiver"));
-      }
+      await updateUserDoc(user.uid, newUserDoc("recovering"));
+      const code = generatePairingCode();
+      await createPairingCode(user.uid, code);
+      await updateUserDoc(user.uid, { pairingCode: code });
+      router.push("/user/checkin");
+      return;
     }
-    router.push("/caregiver/dashboard");
+
+    const existing = await getUserDoc(user.uid);
+    if (!existing) {
+      // First-ever sign-in with no profile (e.g. Google, skipping signup).
+      await updateUserDoc(user.uid, newUserDoc("recovering"));
+      const code = generatePairingCode();
+      await createPairingCode(user.uid, code);
+      await updateUserDoc(user.uid, { pairingCode: code });
+      router.push("/user/checkin");
+      return;
+    }
+    router.push("/user/home");
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -90,7 +105,7 @@ export default function CaregiverAuthPage() {
     <div className="flex flex-1 flex-col items-center justify-center px-6 py-16">
       <div className="flex w-full max-w-sm flex-col gap-5">
         <h1 className="text-2xl font-semibold tracking-tight">
-          {mode === "signup" ? "Caregiver sign up" : "Caregiver log in"}
+          {mode === "signup" ? "Get started" : "Welcome back"}
         </h1>
 
         <Button
@@ -169,8 +184,8 @@ export default function CaregiverAuthPage() {
           {mode === "signup" ? "Already have an account? Log in" : "New here? Create an account"}
         </button>
 
-        <a href="/user" className="text-center text-xs text-zinc-400 underline">
-          Signing in as someone in recovery instead?
+        <a href="/caregiver" className="text-center text-xs text-zinc-400 underline">
+          Signing in as a caregiver instead?
         </a>
       </div>
     </div>
